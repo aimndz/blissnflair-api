@@ -1,12 +1,14 @@
 import express, { Request, Response } from "express";
 
-import indexRouter from "./routes/indexRouter";
-import adminRouter from "./routes/adminRouter";
+import authRouter from "./routes/authRouter";
+import eventRouter from "./routes/eventRouter";
+import accountRouter from "./routes/accountRouter";
 
 const app = express();
 
-app.use("/", indexRouter);
-app.use("/admin", adminRouter);
+app.use("/auth", authRouter);
+app.use("/event", eventRouter);
+app.use("/account", accountRouter);
 
 const PORT = 3000;
 
