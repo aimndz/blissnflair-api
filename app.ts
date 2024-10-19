@@ -9,6 +9,9 @@ import accountRouter from "./routes/accountRouter";
 
 const app = express();
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use("/auth", authRouter);
 app.use("/event", eventRouter);
 app.use("/account", accountRouter);
