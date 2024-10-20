@@ -22,7 +22,28 @@ const accountController = {
   }),
 
   getAccountById: asyncHandler(async (req: Request, res: Response) => {
-    // TODO: Implement get account by id
+    const accountId = req.params.id;
+
+    const account = await prisma.user.findUnique({
+      where: {
+        id: accountId,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phoneNumber: true,
+        role: true,
+      },
+    });
+
+    if (!account) {
+      res.status(404).json({ msg: "Account not found" });
+      return;
+    }
+
+    res.status(200).json(account);
   }),
 
   createAccount: asyncHandler(async (req: Request, res: Response) => {
