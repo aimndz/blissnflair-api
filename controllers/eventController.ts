@@ -1,9 +1,60 @@
 import asyncHandler from "express-async-handler";
 import { Request, Response } from "express";
+import { PrismaClient } from "@prisma/client";
+
+import { IUser } from "../@types/user";
+
+const prisma = new PrismaClient();
 
 const eventController = {
   getAllEvents: asyncHandler(async (req: Request, res: Response) => {
-    // TODO: Implement get all events
+    const user = req.user as IUser;
+    const userRole = user?.role;
+    const userId = user?.id;
+
+    // If user is an admin, return all events
+    if (userRole === "ADMIN") {
+      const events = await prisma.event.findMany({
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          category: true,
+          date: true,
+          startTime: true,
+          endTime: true,
+          status: true,
+          createdAt: true,
+          modifiedAt: true,
+          userId: true,
+        },
+      });
+
+      res.status(200).json(events);
+      return;
+    }
+
+    // If user is not an admin, return only events created by the user
+    const events = await prisma.event.findMany({
+      where: {
+        userId: userId,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        category: true,
+        date: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+        createdAt: true,
+        modifiedAt: true,
+        userId: true,
+      },
+    });
+
+    res.status(200).json(events);
   }),
 
   getEventById: asyncHandler(async (req: Request, res: Response) => {
