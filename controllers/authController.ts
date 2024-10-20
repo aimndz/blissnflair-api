@@ -59,7 +59,16 @@ const authController = {
       .notEmpty()
       .withMessage("Email is required")
       .isEmail()
-      .withMessage("Invalid email format"),
+      .withMessage("Invalid email format")
+      .custom(async (value) => {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: value },
+        });
+        if (existingUser) {
+          throw new Error("Email already exists");
+        }
+        return true;
+      }),
 
     body("password")
       .trim()
