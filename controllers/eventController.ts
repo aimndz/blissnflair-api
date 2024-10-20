@@ -14,21 +14,7 @@ const eventController = {
 
     // If user is an admin, return all events
     if (userRole === "ADMIN") {
-      const events = await prisma.event.findMany({
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          category: true,
-          date: true,
-          startTime: true,
-          endTime: true,
-          status: true,
-          createdAt: true,
-          modifiedAt: true,
-          userId: true,
-        },
-      });
+      const events = await prisma.event.findMany();
 
       res.status(200).json(events);
       return;
@@ -38,19 +24,6 @@ const eventController = {
     const events = await prisma.event.findMany({
       where: {
         userId: userId,
-      },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        category: true,
-        date: true,
-        startTime: true,
-        endTime: true,
-        status: true,
-        createdAt: true,
-        modifiedAt: true,
-        userId: true,
       },
     });
 
