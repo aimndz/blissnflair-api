@@ -58,7 +58,18 @@ const eventController = {
   }),
 
   getEventById: asyncHandler(async (req: Request, res: Response) => {
-    // TODO: Implement get event by id
+    const event = await prisma.event.findUnique({
+      where: {
+        id: req.params.id,
+      },
+    });
+
+    if (!event) {
+      res.status(404).json({ msg: "Event not found" });
+      return;
+    }
+
+    res.status(200).json(event);
   }),
 
   createEvent: asyncHandler(async (req: Request, res: Response) => {
