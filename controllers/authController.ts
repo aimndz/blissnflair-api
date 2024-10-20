@@ -70,6 +70,11 @@ const authController = {
         return true;
       }),
 
+    body("phoneNumber")
+      .optional()
+      .matches(/^\+639\d{9}$/)
+      .withMessage("Invalid phone number format. Use +639XXXXXXXXX."),
+
     body("password")
       .trim()
       .notEmpty()
@@ -102,7 +107,7 @@ const authController = {
         return;
       }
 
-      const { firstName, lastName, email, password } = req.body;
+      const { firstName, lastName, email, phoneNumber, password } = req.body;
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -111,6 +116,7 @@ const authController = {
           firstName,
           lastName,
           email,
+          phoneNumber,
           password: hashedPassword,
         },
       });

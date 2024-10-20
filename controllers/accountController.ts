@@ -78,7 +78,10 @@ const accountController = {
         return true;
       }),
 
-    body("phoneNumber").optional(),
+    body("phoneNumber")
+      .optional()
+      .matches(/^\+639\d{9}$/)
+      .withMessage("Invalid phone number format. Use +639XXXXXXXXX."),
 
     body("role").optional().isIn(["ADMIN", "USER"]),
 
