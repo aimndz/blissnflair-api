@@ -2,11 +2,12 @@ import { Router } from "express";
 const eventRouter = Router();
 
 import eventController from "../controllers/eventController";
+import authenticateJWT from "../middlewares/authMiddleware";
 
-eventRouter.get("/", eventController.getAllEvents);
-eventRouter.get("/:id", eventController.getEventById);
-eventRouter.post("/", eventController.createEvent);
-eventRouter.put("/:id", eventController.updateEvent);
-eventRouter.delete("/:id", eventController.deleteEvent);
+eventRouter.get("/", authenticateJWT(), eventController.getAllEvents);
+eventRouter.get("/:id", authenticateJWT(), eventController.getEventById);
+eventRouter.post("/", authenticateJWT(), eventController.createEvent);
+eventRouter.put("/:id", authenticateJWT(), eventController.updateEvent);
+eventRouter.delete("/:id", authenticateJWT(), eventController.deleteEvent);
 
 export default eventRouter;

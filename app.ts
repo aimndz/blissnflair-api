@@ -3,6 +3,8 @@ import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 dotenv.config();
 
+import passport from "./config/passportConfig";
+
 import authRouter from "./routes/authRouter";
 import eventRouter from "./routes/eventRouter";
 import accountRouter from "./routes/accountRouter";
@@ -12,6 +14,8 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(passport.initialize());
 
 app.use("/auth", authRouter);
 app.use("/event", eventRouter);
