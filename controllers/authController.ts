@@ -39,10 +39,6 @@ const authController = {
     res.status(200).json({ msg: "Login successful", token });
   }),
 
-  adminLogin: asyncHandler(async (req: Request, res: Response) => {
-    // TODO: Implement admin login
-  }),
-
   signUp: [
     body("firstName")
       .trim()
@@ -113,10 +109,6 @@ const authController = {
       res.status(201).json({ msg: "User created successfully" });
     }),
   ],
-
-  logOut: asyncHandler(async (req: Request, res: Response) => {
-    // TODO: Implement log out
-  }),
 };
 
 export default authController;
