@@ -1,9 +1,24 @@
 import asyncHandler from "express-async-handler";
 import { Request, Response } from "express";
 
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
 const accountController = {
   getAllAccounts: asyncHandler(async (req: Request, res: Response) => {
-    // TODO: Implement get all accounts
+    const accounts = await prisma.user.findMany({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phoneNumber: true,
+        role: true,
+      },
+    });
+
+    res.status(200).json(accounts);
   }),
 
   getAccountById: asyncHandler(async (req: Request, res: Response) => {
