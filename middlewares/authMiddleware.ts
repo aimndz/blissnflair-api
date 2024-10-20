@@ -1,18 +1,14 @@
 import passport from "passport";
 import { Request, Response, NextFunction } from "express";
 
-interface User {
-  id: string;
-  email: string;
-  role: string;
-}
+import { IUser } from "../@types/user";
 
 const authenticateJWT = (roles: string[] = []) => {
   return (req: Request, res: Response, next: NextFunction) => {
     passport.authenticate(
       "jwt",
       { session: false },
-      (err: Error | null, user: User | false) => {
+      (err: Error | null, user: IUser | false) => {
         if (err) {
           return res.status(500).json({ msg: "Internal server error" });
         }
