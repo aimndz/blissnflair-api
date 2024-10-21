@@ -250,7 +250,26 @@ const accountController = {
   ],
 
   deleteAccount: asyncHandler(async (req: Request, res: Response) => {
-    // TODO: Implement delete account
+    const accountId = req.params.id;
+
+    const account = await prisma.user.findUnique({
+      where: {
+        id: accountId,
+      },
+    });
+
+    if (!account) {
+      res.status(404).json({ msg: "Account not found" });
+      return;
+    }
+
+    await prisma.user.delete({
+      where: {
+        id: accountId,
+      },
+    });
+
+    res.status(200).json({ msg: "Account deleted successfully" });
   }),
 };
 
