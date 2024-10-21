@@ -292,7 +292,48 @@ const eventController = {
   ],
 
   deleteEvent: asyncHandler(async (req: Request, res: Response) => {
-    // TODO: Implement delete event
+    const user = req.user as IUser;
+    const eventId = req.params.id;
+
+    // If user is an admin, allow them to delete any event
+    if (user.role === "ADMIN") {
+      const event = await prisma.event.findUnique({
+        where: { id: eventId },
+      });
+
+      if (!event) {
+        res.status(404).json({ msg: "Event not found" });
+        return;
+      }
+
+      await prisma.event.delete({
+        where: { id: eventId },
+      });
+
+      res.status(200).json({ msg: "Event deleted successfully" });
+      return;
+    }
+
+    // If user is not an admin, allow them to delete only their own events
+    const event = await prisma.event.findFirst({
+      where: {
+        id: eventId,
+        userId: user.id,
+      },
+    });
+
+    if (!event) {
+      res.status(404).json({ msg: "Event not found" });
+      return;
+    }
+
+    await prisma.event.delete({
+      where: {
+        id: eventId,
+      },
+    });
+
+    res.status(200).json({ msg: "Event deleted successfully" });
   }),
 };
 
