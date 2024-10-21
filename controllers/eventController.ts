@@ -156,9 +156,140 @@ const eventController = {
     }),
   ],
 
-  updateEvent: asyncHandler(async (req: Request, res: Response) => {
-    // TODO: Implement update event
-  }),
+  updateEvent: [
+    body("title")
+      .trim()
+      .notEmpty()
+      .withMessage("Title is required")
+      .isLength({ max: 50 })
+      .withMessage("Title must be less than 50 characters")
+      .custom(async (value, { req }) => {
+        const userId = req.user.id;
+        const eventId = req.params?.id;
+
+        const existingEvent = await prisma.event.findFirst({
+          where: {
+            title: value,
+            userId: userId,
+            NOT: { id: eventId }, // not updating the event title for the same event is allowed
+          },
+        });
+
+        if (existingEvent) {
+          throw new Error("You already have an event with this title");
+        }
+
+        return true;
+      }),
+
+    body("description")
+      .trim()
+      .notEmpty()
+      .withMessage("Description is required")
+      .isLength({ max: 255 })
+      .withMessage("Description must be less than 255 characters"),
+
+    body("category")
+      .trim()
+      .notEmpty()
+      .withMessage("Category is required")
+      .isLength({ max: 50 })
+      .withMessage("Category must be less than 50 characters"),
+
+    body("date")
+      .trim()
+      .notEmpty()
+      .withMessage("Date is required")
+      .isISO8601()
+      .withMessage("Date must be a valid date"),
+
+    body("startTime")
+      .trim()
+      .notEmpty()
+      .withMessage("Start time is required")
+      .isISO8601()
+      .withMessage("Start time must be a valid time"),
+
+    body("endTime")
+      .trim()
+      .notEmpty()
+      .withMessage("End time is required")
+      .isISO8601()
+      .withMessage("End time must be a valid time")
+      .custom((endTime, { req }) => {
+        const startTime = req.body.startTime;
+
+        const start = new Date(startTime);
+        const end = new Date(endTime);
+
+        if (end <= start) {
+          throw new Error("End time must be after the start time");
+        }
+
+        // Check if the endTime is at least 1 hour after startTime
+        const diffInHours =
+          (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+
+        if (diffInHours < 1) {
+          throw new Error(
+            "End time must be at least 1 hour after the start time"
+          );
+        }
+
+        return true;
+      }),
+
+    body("status")
+      .trim()
+      .notEmpty()
+      .withMessage("Status is required")
+      .isIn(["PENDING", "APPROVED", "CANCELED", "REJECTED", "COMPLETED"])
+      .withMessage("Status must be PENDING, APPROVED, REJECTED or COMPLETED"),
+
+    asyncHandler(async (req: Request, res: Response) => {
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        res.status(400).json({ errors: errors.array() });
+        return;
+      }
+
+      const user = req.user as IUser;
+      const eventId = req.params.id;
+
+      const { title, description, category, date, startTime, endTime, status } =
+        req.body;
+
+      const event = await prisma.event.findFirst({
+        where: {
+          id: eventId,
+          userId: user.id,
+        },
+      });
+
+      if (!event) {
+        res.status(404).json({ msg: "Event not found" });
+        return;
+      }
+
+      const updatedEvent = await prisma.event.update({
+        where: {
+          id: eventId,
+        },
+        data: {
+          title,
+          description,
+          category,
+          date,
+          startTime,
+          endTime,
+          status,
+        },
+      });
+
+      res.status(200).json({ msg: "Event updated successfully", updatedEvent });
+    }),
+  ],
 
   deleteEvent: asyncHandler(async (req: Request, res: Response) => {
     // TODO: Implement delete event
