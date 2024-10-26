@@ -1,11 +1,16 @@
 import passport from "passport";
 import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
+import { Request } from "express";
 
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
+const cookieExtractor = (req: Request): string | null => {
+  return req.cookies && req.cookies.token ? req.cookies.token : null;
+};
+
 const opts = {
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  jwtFromRequest: cookieExtractor,
   secretOrKey: process.env.JWT_SECRET,
 };
 
