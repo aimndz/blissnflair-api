@@ -35,8 +35,10 @@ const authController = {
       expiresIn: "1h",
     });
 
+    res.cookie("token", token, { httpOnly: true, maxAge: 3600000 });
+
     // Successful login
-    res.status(200).json({ msg: "Login successful", token });
+    res.status(200).json({ msg: "Login successful" });
   }),
 
   signUp: [
