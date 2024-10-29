@@ -126,6 +126,11 @@ const authController = {
       res.status(201).json({ msg: "User created successfully" });
     }),
   ],
+
+  logout: asyncHandler(async (req: Request, res: Response) => {
+    res.clearCookie("token");
+    res.status(200).json({ msg: "Logged out successfully" });
+  }),
 };
 
 export default authController;

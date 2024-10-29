@@ -9,6 +9,7 @@ import { IUser } from "../@types/user";
 // User routes
 authRouter.post("/login", authController.login);
 authRouter.post("/sign-up", authController.signUp);
+authRouter.post("/logout", authController.logout);
 authRouter.get(
   "/google",
   passport.authenticate("google", {
