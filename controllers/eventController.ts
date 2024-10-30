@@ -84,6 +84,13 @@ const eventController = {
       .isLength({ max: 50 })
       .withMessage("Category must be less than 50 characters"),
 
+    body("expectedPax")
+      .trim()
+      .notEmpty()
+      .withMessage("Expected pax is required")
+      .isInt({ min: 1 })
+      .withMessage("Expected pax must be a number greater than 0"),
+
     body("date")
       .trim()
       .notEmpty()
@@ -127,6 +134,27 @@ const eventController = {
         return true;
       }),
 
+    body("additionalServices")
+      .optional()
+      .isArray()
+      .withMessage("Additional services must be an array")
+      .custom((value) => {
+        if (value) {
+          value.forEach((service: string) => {
+            if (typeof service !== "string") {
+              throw new Error("Each additional service must be a string");
+            }
+          });
+        }
+        return true;
+      }),
+
+    body("additionalNotes")
+      .optional()
+      .trim()
+      .isLength({ max: 500 })
+      .withMessage("Additional notes must be less than 500 characters"),
+
     asyncHandler(async (req: Request, res: Response) => {
       const errors = validationResult(req);
 
@@ -137,22 +165,34 @@ const eventController = {
 
       const user = req.user as IUser;
 
-      const { title, description, category, date, startTime, endTime } =
-        req.body;
+      const {
+        title,
+        description,
+        category,
+        expectedPax,
+        date,
+        startTime,
+        endTime,
+        additionalServices,
+        additionalNotes,
+      } = req.body;
 
       await prisma.event.create({
         data: {
           title,
           description,
           category,
+          expectedPax: Number(expectedPax),
           date,
           startTime,
           endTime,
+          additionalServices,
+          additionalNotes,
           userId: user.id,
         },
       });
 
-      res.status(201).json({ msg: "User created successfully" });
+      res.status(201).json({ msg: "Event created successfully" });
     }),
   ],
 
