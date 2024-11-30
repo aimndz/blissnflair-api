@@ -182,30 +182,39 @@ const accountController = {
 
     body("phoneNumber")
       .optional()
-      .matches(/^\+639\d{9}$/)
+      .custom((value) => {
+        if (value === "") return true;
+        return /^[\+639]\d{9}$/.test(value);
+      })
       .withMessage("Invalid phone number format. Use +639XXXXXXXXX."),
 
     body("role").optional().isIn(["ADMIN", "USER"]),
 
     body("password")
-      .trim()
-      .notEmpty()
-      .withMessage("Password is required")
-      .isLength({ min: 8 })
-      .withMessage("Password must be at least 8 characters")
-      .matches(/\d/)
-      .withMessage("Password must contain a number")
-      .matches(/[a-zA-Z]/)
-      .withMessage("Password must contain a letter")
-      .matches(/[!@#$%^&*(),.?":{}|<>]/)
-      .withMessage("Password must contain a special character"),
+      .optional()
+      .custom((value, { req }) => {
+        if (value) {
+          // If password is provided, validate it
+          if (value.length < 8) {
+            throw new Error("Password must be at least 8 characters");
+          }
+          if (!/\d/.test(value)) {
+            throw new Error("Password must contain a number");
+          }
+          if (!/[a-zA-Z]/.test(value)) {
+            throw new Error("Password must contain a letter");
+          }
+          if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) {
+            throw new Error("Password must contain a special character");
+          }
+        }
+        return true;
+      }),
 
     body("confirmPassword")
-      .trim()
-      .notEmpty()
-      .withMessage("Confirm password is required")
+      .optional()
       .custom((value, { req }) => {
-        if (value !== req.body.password) {
+        if (value && value !== req.body.password) {
           throw new Error("Passwords do not match");
         }
         return true;
@@ -241,20 +250,30 @@ const accountController = {
         password,
       } = req.body;
 
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const updatedData: {
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        role?: "ADMIN" | "USER";
+        phoneNumber?: string;
+        password?: string;
+      } = {
+        firstName,
+        lastName,
+        email,
+        role,
+        phoneNumber,
+      };
+
+      if (password) {
+        updatedData.password = await bcrypt.hash(password, 10);
+      }
 
       const updatedAccount = await prisma.user.update({
         where: {
           id: accountId,
         },
-        data: {
-          firstName,
-          lastName,
-          email,
-          role,
-          phoneNumber,
-          password: hashedPassword,
-        },
+        data: updatedData,
       });
 
       res.status(200).json(updatedAccount);
