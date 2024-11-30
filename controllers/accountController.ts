@@ -211,12 +211,30 @@ const accountController = {
         return true;
       }),
 
-    body("confirmPassword")
+    body("currentPassword")
       .optional()
-      .custom((value, { req }) => {
-        if (value && value !== req.body.password) {
-          throw new Error("Passwords do not match");
+      .custom(async (value, { req }) => {
+        const accountId = req.params?.id;
+
+        // Fetch the user's current hashed password from the database
+        const user = await prisma.user.findUnique({
+          where: { id: accountId },
+          select: { password: true },
+        });
+
+        if (!user) {
+          throw new Error("User not found");
         }
+
+        // Check if currentPassword matches the current stored password
+        const isCurrentPasswordMatch = await bcrypt.compare(
+          value,
+          user.password
+        );
+        if (!isCurrentPasswordMatch) {
+          throw new Error("Current password is incorrect");
+        }
+
         return true;
       }),
 
