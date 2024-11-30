@@ -4,6 +4,7 @@ import { body, validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
 
 import { PrismaClient } from "@prisma/client";
+import { IUser } from "../@types/user";
 const prisma = new PrismaClient();
 
 const accountController = {
@@ -219,6 +220,17 @@ const accountController = {
       }
 
       const accountId = req.params.id;
+      const user = req.user as IUser;
+
+      const userId = user?.id;
+      const userRole = user?.role;
+
+      if (userRole !== "ADMIN" && userId !== accountId) {
+        res
+          .status(403)
+          .json({ error: "Forbidden: You can only update your own account" });
+        return;
+      }
 
       const {
         firstName,

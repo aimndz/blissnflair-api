@@ -21,7 +21,7 @@ accountRouter.post(
 );
 accountRouter.put(
   "/:id",
-  authenticateJWT(["ADMIN"]),
+  authenticateJWT(),
   accountController.updateAccount
 );
 accountRouter.delete(
