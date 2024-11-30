@@ -215,7 +215,7 @@ const eventController = {
           },
         });
 
-        if (existingEvent) {
+        if (existingEvent && existingEvent.id !== eventId) {
           throw new Error("You already have an event with this title");
         }
 
