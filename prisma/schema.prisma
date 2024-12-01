@@ -42,6 +42,10 @@ model Event {
   date               DateTime
   startTime          DateTime
   endTime            DateTime
+  hasInHouseCatering Boolean
+  hasCleaningFee     Boolean
+  additionalHours    Int
+  venue              String
   additionalServices String[]
   additionalNotes    String?
   status             Status   @default(PENDING)

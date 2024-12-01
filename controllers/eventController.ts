@@ -117,7 +117,6 @@ const eventController = {
         const start = new Date(startTime);
         const end = new Date(endTime);
 
-        // Check if the endTime is at least 1 hour after startTime
         if (end <= start) {
           throw new Error("End time must be after the start time");
         }
@@ -133,6 +132,16 @@ const eventController = {
 
         return true;
       }),
+
+    body("hasInHouseCatering")
+      .optional()
+      .isBoolean()
+      .withMessage("In-house catering must be a boolean value"),
+
+    body("additionalHours")
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage("Additional hours must be a non-negative integer"),
 
     body("additionalServices")
       .optional()
@@ -155,7 +164,12 @@ const eventController = {
       .isLength({ max: 500 })
       .withMessage("Additional notes must be less than 500 characters"),
 
-    asyncHandler(async (req: Request, res: Response) => {
+    body("hasCleaningFee")
+      .optional()
+      .isBoolean()
+      .withMessage("Cleaning fee must be a boolean value"),
+
+    asyncHandler(async (req, res) => {
       const errors = validationResult(req);
 
       if (!errors.isEmpty()) {
@@ -173,8 +187,11 @@ const eventController = {
         date,
         startTime,
         endTime,
+        hasInHouseCatering,
+        additionalHours,
         additionalServices,
         additionalNotes,
+        hasCleaningFee,
       } = req.body;
 
       await prisma.event.create({
@@ -186,9 +203,13 @@ const eventController = {
           date,
           startTime,
           endTime,
+          hasInHouseCatering: hasInHouseCatering ?? false,
+          additionalHours: additionalHours ? Number(additionalHours) : 0,
           additionalServices,
           additionalNotes,
+          hasCleaningFee: hasCleaningFee ?? false,
           userId: user.id,
+          venue: "",
         },
       });
 
