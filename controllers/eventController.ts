@@ -321,13 +321,16 @@ const eventController = {
       const user = req.user as IUser;
       const eventId = req.params.id;
 
-      const { title, description, category, date, startTime, endTime, status } =
-        req.body;
+      // Check if the user is an admin or not
+      const isAdmin = user.role === "ADMIN";
 
+      // Modify the event query based on whether the user is an admin
       const event = await prisma.event.findFirst({
         where: {
           id: eventId,
-          userId: user.id,
+          // Only check for userId if the user is not an admin
+          // This allows admins to update any event and users to update only their own events
+          ...(isAdmin ? {} : { userId: user.id }),
         },
       });
 
@@ -335,6 +338,9 @@ const eventController = {
         res.status(404).json({ msg: "Event not found" });
         return;
       }
+
+      const { title, description, category, date, startTime, endTime, status } =
+        req.body;
 
       const updatedEvent = await prisma.event.update({
         where: {
