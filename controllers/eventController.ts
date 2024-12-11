@@ -77,6 +77,8 @@ const eventController = {
       .isLength({ max: 255 })
       .withMessage("Description must be less than 255 characters"),
 
+    body("venue").trim().notEmpty().withMessage("Venue is required"),
+
     body("category")
       .trim()
       .notEmpty()
@@ -192,6 +194,7 @@ const eventController = {
         additionalServices,
         additionalNotes,
         hasCleaningFee,
+        venue,
       } = req.body;
 
       await prisma.event.create({
@@ -209,7 +212,7 @@ const eventController = {
           additionalNotes,
           hasCleaningFee: hasCleaningFee ?? false,
           userId: user.id,
-          venue: "",
+          venue,
         },
       });
 
