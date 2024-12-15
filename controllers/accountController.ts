@@ -17,6 +17,7 @@ const accountController = {
         email: true,
         phoneNumber: true,
         role: true,
+        createdAt: true,
       },
     });
 
@@ -129,7 +130,7 @@ const accountController = {
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      await prisma.user.create({
+      const user = await prisma.user.create({
         data: {
           firstName,
           lastName,
@@ -140,7 +141,7 @@ const accountController = {
         },
       });
 
-      res.status(201).json({ msg: "User created successfully" });
+      res.status(201).json({ msg: "User created successfully", user });
     }),
   ],
 
@@ -182,10 +183,7 @@ const accountController = {
 
     body("phoneNumber")
       .optional()
-      .custom((value) => {
-        if (value === "") return true;
-        return /^[\+639]\d{9}$/.test(value);
-      })
+      .matches(/^\+639\d{9}$/)
       .withMessage("Invalid phone number format. Use +639XXXXXXXXX."),
 
     body("role").optional().isIn(["ADMIN", "USER"]),
@@ -294,7 +292,9 @@ const accountController = {
         data: updatedData,
       });
 
-      res.status(200).json(updatedAccount);
+      res
+        .status(200)
+        .json({ msg: "User updated successfully", user: updatedAccount });
     }),
   ],
 
