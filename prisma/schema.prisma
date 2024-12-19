@@ -27,6 +27,7 @@ model User {
   email       String   @unique
   phoneNumber String?
   password    String
+  imageUrl    String?
   role        Role     @default(USER)
   createdAt   DateTime @default(now())
   modifiedAt  DateTime @updatedAt
@@ -36,12 +37,14 @@ model User {
 model Event {
   id                 String   @id @default(uuid())
   title              String
+  organizer          String?
   description        String
   category           String
   expectedPax        Int
   date               DateTime
   startTime          DateTime
   endTime            DateTime
+  imageUrl           String?
   hasInHouseCatering Boolean
   hasCleaningFee     Boolean
   additionalHours    Int
