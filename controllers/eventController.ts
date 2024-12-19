@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { supabase } from "../config/supabaseClient";
 
 import { IUser } from "../@types/user";
 import { body, validationResult } from "express-validator";
@@ -78,6 +79,25 @@ const eventController = {
       .withMessage("Description must be less than 255 characters"),
 
     body("venue").trim().notEmpty().withMessage("Venue is required"),
+
+    body("eventImage")
+      .optional()
+      .custom((value, { req }) => {
+        if (req.file) {
+          const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+          if (!allowedTypes.includes(req.file.mimetype)) {
+            throw new Error("File must be a valid image");
+          }
+
+          // max 5MB
+          const maxSize = 5 * 1024 * 1024; // 5MB
+          if (req.file.size > maxSize) {
+            throw new Error("File size must be less than 5MB");
+          }
+        }
+
+        return true;
+      }),
 
     body("category")
       .trim()
@@ -197,7 +217,7 @@ const eventController = {
         venue,
       } = req.body;
 
-      await prisma.event.create({
+      const newEvent = await prisma.event.create({
         data: {
           title,
           description,
@@ -206,7 +226,7 @@ const eventController = {
           date,
           startTime,
           endTime,
-          hasInHouseCatering: hasInHouseCatering ?? false,
+          hasInHouseCatering: hasInHouseCatering === "true",
           additionalHours: additionalHours ? Number(additionalHours) : 0,
           additionalServices,
           additionalNotes,
@@ -216,7 +236,44 @@ const eventController = {
         },
       });
 
-      res.status(201).json({ msg: "Event created successfully" });
+      const eventImage = req.file;
+
+      let updatedEvent;
+
+      if (eventImage) {
+        const filePath = `event_img/${newEvent.id}/${
+          eventImage.originalname
+        }-${Date.now()}`;
+
+        // Upload the image to Supabase
+        const { error, data } = await supabase.storage
+          .from("images")
+          .upload(filePath, eventImage.buffer, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (error) {
+          res.status(500).json({
+            error: "Failed to upload event image",
+            message: error.message,
+          });
+          return;
+        }
+
+        const publicUrl = supabase.storage.from("images").getPublicUrl(filePath)
+          .data.publicUrl;
+
+        // Update the event with the `imageUrl`
+        updatedEvent = await prisma.event.update({
+          where: { id: newEvent.id },
+          data: { imageUrl: publicUrl },
+        });
+      }
+
+      res
+        .status(201)
+        .json({ msg: "Event created successfully", event: updatedEvent });
     }),
   ],
 
