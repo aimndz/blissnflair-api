@@ -1,8 +1,13 @@
 import { Router } from "express";
 const accountRouter = Router();
+import multer from "multer";
 
 import accountController from "../controllers/accountController";
 import authenticateJWT from "../middlewares/authMiddleware";
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+});
 
 accountRouter.get(
   "/",
@@ -22,6 +27,7 @@ accountRouter.post(
 accountRouter.put(
   "/:id",
   authenticateJWT(),
+  upload.single("avatarImage"),
   accountController.updateAccount
 );
 accountRouter.delete(

@@ -2,9 +2,10 @@ import asyncHandler from "express-async-handler";
 import e, { Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
-
+import { supabase } from "../config/supabaseClient";
 import { PrismaClient } from "@prisma/client";
 import { IUser } from "../@types/user";
+
 const prisma = new PrismaClient();
 
 const accountController = {
@@ -183,8 +184,14 @@ const accountController = {
 
     body("phoneNumber")
       .optional()
-      .matches(/^\+639\d{9}$/)
-      .withMessage("Invalid phone number format. Use +639XXXXXXXXX."),
+      .custom((value) => {
+        if (value && value.length > 0) {
+          if (!/^\+639\d{9}$/.test(value)) {
+            throw new Error("Invalid phone number format. Use +639XXXXXXXXX.");
+          }
+        }
+        return true;
+      }),
 
     body("role").optional().isIn(["ADMIN", "USER"]),
 
@@ -231,6 +238,25 @@ const accountController = {
         );
         if (!isCurrentPasswordMatch) {
           throw new Error("Current password is incorrect");
+        }
+
+        return true;
+      }),
+
+    body("avatarImage")
+      .optional()
+      .custom((value, { req }) => {
+        if (req.file) {
+          const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+          if (!allowedTypes.includes(req.file.mimetype)) {
+            throw new Error("File must be a valid image");
+          }
+
+          // max 5MB
+          const maxSize = 5 * 1024 * 1024; // 5MB
+          if (req.file.size > maxSize) {
+            throw new Error("File size must be less than 5MB");
+          }
         }
 
         return true;
@@ -292,9 +318,76 @@ const accountController = {
         data: updatedData,
       });
 
-      res
-        .status(200)
-        .json({ msg: "User updated successfully", user: updatedAccount });
+      const avatarImage = req.file;
+      let updatedUser;
+
+      if (avatarImage) {
+        const folderPath = `avatar_img/${updatedAccount.id}/`;
+        const filePath = `${folderPath}${
+          avatarImage.originalname
+        }-${Date.now()}`;
+
+        // List existing files in the folder
+        const { data: existingFiles, error: listError } = await supabase.storage
+          .from("images")
+          .list(folderPath);
+
+        if (listError) {
+          res.status(500).json({
+            error: "Failed to check existing avatar images",
+            message: listError.message,
+          });
+          return;
+        }
+
+        // Delete existing files in the folder
+        if (existingFiles?.length) {
+          const deletePaths = existingFiles.map(
+            (file) => `${folderPath}${file.name}`
+          );
+          const { error: deleteError } = await supabase.storage
+            .from("images")
+            .remove(deletePaths);
+
+          if (deleteError) {
+            res.status(500).json({
+              error: "Failed to delete existing avatar images",
+              message: deleteError.message,
+            });
+            return;
+          }
+        }
+
+        // Upload the new image
+        const { error: uploadError } = await supabase.storage
+          .from("images")
+          .upload(filePath, avatarImage.buffer, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (uploadError) {
+          res.status(500).json({
+            error: "Failed to upload avatar image",
+            message: uploadError.message,
+          });
+          return;
+        }
+
+        const publicUrl = supabase.storage.from("images").getPublicUrl(filePath)
+          .data.publicUrl;
+
+        // Update the user with the `imageUrl`
+        updatedUser = await prisma.user.update({
+          where: { id: accountId },
+          data: { imageUrl: publicUrl },
+        });
+      }
+
+      res.status(200).json({
+        msg: "User updated successfully",
+        user: updatedUser || updatedAccount,
+      });
     }),
   ],
 
