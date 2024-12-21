@@ -68,6 +68,7 @@ passport.use(
               email: profile.email,
               password: "",
               role: "USER",
+              imageUrl: profile.picture,
             },
           });
         }
