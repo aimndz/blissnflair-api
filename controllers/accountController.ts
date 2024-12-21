@@ -19,6 +19,7 @@ const accountController = {
         phoneNumber: true,
         role: true,
         createdAt: true,
+        imageUrl: true,
       },
     });
 
@@ -39,6 +40,7 @@ const accountController = {
         email: true,
         phoneNumber: true,
         role: true,
+        imageUrl: true,
       },
     });
 
