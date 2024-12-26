@@ -12,6 +12,8 @@ import eventRouter from "./routes/eventRouter";
 import accountRouter from "./routes/accountRouter";
 import errorHandler from "./middlewares/errorMiddleware";
 import utilsRouter from "./routes/utilsRouter";
+import cateringSelectionRouter from "./routes/cateringSelectionRouter";
+import cateringDetailsRouter from "./routes/cateringDetailsRouter";
 
 const app = express();
 
@@ -34,6 +36,8 @@ app.use("/auth", authRouter);
 app.use("/event", eventRouter);
 app.use("/account", accountRouter);
 app.use("/utils", utilsRouter);
+app.use("/catering-selection", cateringSelectionRouter);
+app.use("/catering-details", cateringDetailsRouter);
 
 app.use(errorHandler);
 

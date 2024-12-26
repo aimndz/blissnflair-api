@@ -226,7 +226,6 @@ const eventController = {
           date,
           startTime,
           endTime,
-          hasInHouseCatering: hasInHouseCatering === "true",
           additionalHours: additionalHours ? Number(additionalHours) : 0,
           additionalServices,
           additionalNotes,
