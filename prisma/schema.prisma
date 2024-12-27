@@ -25,6 +25,11 @@ enum ItemStatus {
   UNAVAILABLE
 }
 
+enum DishType {
+  MAIN
+  OTHERS
+}
+
 model User {
   id          String   @id @default(uuid())
   firstName   String
@@ -136,6 +141,7 @@ model InclusionsDetails {
 model MainDishDetails {
   id               String             @id @default(uuid())
   name             String
+  dishType         DishType           @default(MAIN)
   category         String
   description      String?
   status           ItemStatus         @default(AVAILABLE)
