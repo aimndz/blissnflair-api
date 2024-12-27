@@ -5,6 +5,36 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const cateringDetailsController = {
+  //--------- Main Dishes Packages CRUD ---------//
+  getAllMainDishPackage: asyncHandler(async (req: Request, res: Response) => {
+    const mainDishesPackages = await prisma.mainDishPackage.findMany();
+    res.json(mainDishesPackages);
+  }),
+
+  createMainDishPackage: asyncHandler(async (req: Request, res: Response) => {
+    const { name, numOfDishesCategory, price, minPax, maxPax } = req.body;
+    const newMainDishesPackage = await prisma.mainDishPackage.create({
+      data: { name, numOfDishesCategory, price, minPax, maxPax },
+    });
+    res.status(201).json(newMainDishesPackage);
+  }),
+
+  updateMainDishPackage: asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { name, numOfDishesCategory, price, minPax, maxPax } = req.body;
+    const updatedMainDishesPackage = await prisma.mainDishPackage.update({
+      where: { id },
+      data: { name, numOfDishesCategory, price, minPax, maxPax },
+    });
+    res.json(updatedMainDishesPackage);
+  }),
+
+  deleteMainDishPackage: asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    await prisma.mainDishPackage.delete({ where: { id } });
+    res.status(204).send();
+  }),
+
   //--------- Packages CRUD ---------//
   getAllPackages: asyncHandler(async (req: Request, res: Response) => {
     const packages = await prisma.packagesDetails.findMany();

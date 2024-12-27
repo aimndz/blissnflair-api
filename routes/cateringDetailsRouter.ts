@@ -5,6 +5,31 @@ import authenticateJWT from "../middlewares/authMiddleware";
 
 const cateringDetails = Router();
 
+// Main Dishes Package Routes
+cateringDetails.get(
+  "/main-dish-package",
+  authenticateJWT(),
+  cateringDetailsController.getAllMainDishPackage
+);
+
+cateringDetails.post(
+  "/main-dish-package",
+  authenticateJWT(),
+  cateringDetailsController.createMainDishPackage
+);
+
+cateringDetails.put(
+  "/main-dish-package/:id",
+  authenticateJWT(),
+  cateringDetailsController.updateMainDishPackage
+);
+
+cateringDetails.delete(
+  "/main-dish-package/:id",
+  authenticateJWT(),
+  cateringDetailsController.deleteMainDishPackage
+);
+
 // Main Dishes Routes
 cateringDetails.get(
   "/main-dishes",
