@@ -106,13 +106,6 @@ const eventController = {
       .isLength({ max: 50 })
       .withMessage("Category must be less than 50 characters"),
 
-    body("expectedPax")
-      .trim()
-      .notEmpty()
-      .withMessage("Expected pax is required")
-      .isInt({ min: 1 })
-      .withMessage("Expected pax must be a number greater than 0"),
-
     body("date")
       .trim()
       .notEmpty()
@@ -165,21 +158,6 @@ const eventController = {
       .isInt({ min: 0 })
       .withMessage("Additional hours must be a non-negative integer"),
 
-    body("additionalServices")
-      .optional()
-      .isArray()
-      .withMessage("Additional services must be an array")
-      .custom((value) => {
-        if (value) {
-          value.forEach((service: string) => {
-            if (typeof service !== "string") {
-              throw new Error("Each additional service must be a string");
-            }
-          });
-        }
-        return true;
-      }),
-
     body("additionalNotes")
       .optional()
       .trim()
@@ -204,14 +182,12 @@ const eventController = {
       const {
         title,
         description,
+        organizer,
         category,
-        expectedPax,
         date,
         startTime,
         endTime,
-        hasInHouseCatering,
         additionalHours,
-        additionalServices,
         additionalNotes,
         hasCleaningFee,
         venue,
@@ -221,13 +197,12 @@ const eventController = {
         data: {
           title,
           description,
+          organizer,
           category,
-          expectedPax: Number(expectedPax),
           date,
           startTime,
           endTime,
           additionalHours: additionalHours ? Number(additionalHours) : 0,
-          additionalServices,
           additionalNotes,
           hasCleaningFee: hasCleaningFee ?? false,
           userId: user.id,
