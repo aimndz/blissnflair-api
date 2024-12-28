@@ -245,9 +245,10 @@ const eventController = {
         });
       }
 
-      res
-        .status(201)
-        .json({ msg: "Event created successfully", event: updatedEvent });
+      res.status(201).json({
+        msg: "Event created successfully",
+        event: updatedEvent ?? newEvent,
+      });
     }),
   ],
 
