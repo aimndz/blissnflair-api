@@ -41,6 +41,74 @@ const cateringController = {
     res.json(cateringSelection);
   }),
 
+  getCateringByEventId: asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const cateringSelection = await prisma.cateringSelection.findUnique({
+      where: { eventId: id },
+      include: {
+        mainDishPackage: true,
+        mainDishes: {
+          include: {
+            mainDishDetail: true,
+          },
+        },
+        pickASnackCorner: {
+          include: {
+            pickASnackCorner: true,
+          },
+        },
+        addOns: {
+          include: {
+            cateringAddOnDetail: true,
+          },
+        },
+      },
+    });
+
+    const transformedSelection = {
+      ...cateringSelection,
+      mainDishes: cateringSelection?.mainDishes.map((dish) => ({
+        id: dish.mainDishDetail.id,
+        name: dish.mainDishDetail.name,
+        dishType: dish.mainDishDetail.dishType,
+        category: dish.mainDishDetail.category,
+        description: dish.mainDishDetail.description,
+        status: dish.mainDishDetail.status,
+        createdAt: dish.mainDishDetail.createdAt,
+        modifiedAt: dish.mainDishDetail.modifiedAt,
+      })),
+      pickASnackCorner: cateringSelection?.pickASnackCorner.map((snack) => ({
+        id: snack.pickASnackCorner.id,
+        name: snack.pickASnackCorner.name,
+        description: snack.pickASnackCorner.description,
+        category: snack.pickASnackCorner.category,
+        status: snack.pickASnackCorner.status,
+        createdAt: snack.pickASnackCorner.createdAt,
+        modifiedAt: snack.pickASnackCorner.modifiedAt,
+      })),
+      addOns: cateringSelection?.addOns.map((addOn) => ({
+        id: addOn.cateringAddOnDetail.id,
+        name: addOn.cateringAddOnDetail.name,
+        category: addOn.cateringAddOnDetail.category,
+        description: addOn.cateringAddOnDetail.description,
+        price: addOn.cateringAddOnDetail.price,
+        paxCapacity: addOn.cateringAddOnDetail.paxCapacity,
+        serviceHours: addOn.cateringAddOnDetail.serviceHours,
+        status: addOn.cateringAddOnDetail.status,
+        createdAt: addOn.cateringAddOnDetail.createdAt,
+        modifiedAt: addOn.cateringAddOnDetail.modifiedAt,
+      })),
+    };
+
+    if (!cateringSelection) {
+      res.status(404);
+      throw new Error("Catering selection not found");
+    }
+
+    res.json(transformedSelection);
+  }),
+
   createCatering: [
     body("expectedPax")
       .isNumeric()

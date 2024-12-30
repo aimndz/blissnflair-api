@@ -10,6 +10,11 @@ cateringRouter.get(
   authenticateJWT(),
   cateringController.getCateringById
 );
+cateringRouter.get(
+  "/event/:id",
+  authenticateJWT(),
+  cateringController.getCateringByEventId
+);
 cateringRouter.post("/", authenticateJWT(), cateringController.createCatering);
 cateringRouter.put(
   "/:id",
