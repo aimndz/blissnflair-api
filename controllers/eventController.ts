@@ -14,18 +14,25 @@ const eventController = {
     const userRole = user?.role;
     const userId = user?.id;
 
-    // If user is an admin, return all events
+    // If user is an admin, return all events with bookedId details
     if (userRole === "ADMIN") {
-      const events = await prisma.event.findMany();
+      const events = await prisma.event.findMany({
+        include: {
+          user: true,
+        },
+      });
 
       res.status(200).json(events);
       return;
     }
 
-    // If user is not an admin, return only events created by the user
+    // If user is not an admin, return only events created by the user with bookedId details
     const events = await prisma.event.findMany({
       where: {
         userId: userId,
+      },
+      include: {
+        user: true,
       },
     });
 
@@ -36,6 +43,9 @@ const eventController = {
     const event = await prisma.event.findUnique({
       where: {
         id: req.params.id,
+      },
+      include: {
+        user: true,
       },
     });
 
