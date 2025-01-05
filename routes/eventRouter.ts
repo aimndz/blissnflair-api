@@ -18,7 +18,12 @@ eventRouter.post(
   upload.single("eventImage"),
   eventController.createEvent
 );
-eventRouter.put("/:id", authenticateJWT(), eventController.updateEvent);
+eventRouter.put(
+  "/:id",
+  authenticateJWT(),
+  upload.single("eventImage"),
+  eventController.updateEvent
+);
 eventRouter.delete("/:id", authenticateJWT(), eventController.deleteEvent);
 
 export default eventRouter;

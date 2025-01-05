@@ -295,6 +295,27 @@ const eventController = {
       .isLength({ max: 255 })
       .withMessage("Description must be less than 255 characters"),
 
+    body("venue").trim().notEmpty().withMessage("Venue is required"),
+
+    body("eventImage")
+      .optional()
+      .custom((value, { req }) => {
+        if (req.file) {
+          const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+          if (!allowedTypes.includes(req.file.mimetype)) {
+            throw new Error("File must be a valid image");
+          }
+
+          // max 5MB
+          const maxSize = 5 * 1024 * 1024; // 5MB
+          if (req.file.size > maxSize) {
+            throw new Error("File size must be less than 5MB");
+          }
+        }
+
+        return true;
+      }),
+
     body("category")
       .trim()
       .notEmpty()
@@ -332,7 +353,6 @@ const eventController = {
           throw new Error("End time must be after the start time");
         }
 
-        // Check if the endTime is at least 1 hour after startTime
         const diffInHours =
           (end.getTime() - start.getTime()) / (1000 * 60 * 60);
 
@@ -344,6 +364,27 @@ const eventController = {
 
         return true;
       }),
+
+    body("hasInHouseCatering")
+      .optional()
+      .isBoolean()
+      .withMessage("In-house catering must be a boolean value"),
+
+    body("additionalHours")
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage("Additional hours must be a non-negative integer"),
+
+    body("additionalNotes")
+      .optional()
+      .trim()
+      .isLength({ max: 500 })
+      .withMessage("Additional notes must be less than 500 characters"),
+
+    body("hasCleaningFee")
+      .optional()
+      .isBoolean()
+      .withMessage("Cleaning fee must be a boolean value"),
 
     body("status")
       .trim()
@@ -361,45 +402,99 @@ const eventController = {
       }
 
       const user = req.user as IUser;
-      const eventId = req.params.id;
+      const eventId = req.params.id; // Assuming the event ID is passed in the URL parameters
 
-      // Check if the user is an admin or not
-      const isAdmin = user.role === "ADMIN";
+      const {
+        title,
+        description,
+        organizer,
+        category,
+        date,
+        startTime,
+        endTime,
+        additionalHours,
+        additionalNotes,
+        hasCleaningFee,
+        venue,
+        status,
+      } = req.body;
 
-      // Modify the event query based on whether the user is an admin
-      const event = await prisma.event.findFirst({
-        where: {
-          id: eventId,
-          // Only check for userId if the user is not an admin
-          // This allows admins to update any event and users to update only their own events
-          ...(isAdmin ? {} : { userId: user.id }),
-        },
+      // Find the existing event
+      const existingEvent = await prisma.event.findUnique({
+        where: { id: eventId },
       });
 
-      if (!event) {
-        res.status(404).json({ msg: "Event not found" });
+      if (!existingEvent) {
+        res.status(404).json({ error: "Event not found" });
         return;
       }
 
-      const { title, description, category, date, startTime, endTime, status } =
-        req.body;
+      // Update the event details
+      const updatedEventData = {
+        title,
+        description,
+        organizer,
+        category,
+        date,
+        startTime,
+        endTime,
+        additionalHours: additionalHours ? Number(additionalHours) : 0,
+        additionalNotes,
+        hasCleaningFee: hasCleaningFee ?? false,
+        userId: user.id, // Assuming the user ID should be updated as well
+        venue,
+        status,
+      };
 
       const updatedEvent = await prisma.event.update({
-        where: {
-          id: eventId,
-        },
-        data: {
-          title,
-          description,
-          category,
-          date,
-          startTime,
-          endTime,
-          status,
-        },
+        where: { id: eventId },
+        data: updatedEventData,
       });
 
-      res.status(200).json({ msg: "Event updated successfully", updatedEvent });
+      const eventImage = req.file;
+
+      if (eventImage) {
+        const filePath = `event_img/${updatedEvent.id}/${
+          eventImage.originalname
+        }-${Date.now()}`;
+
+        // Upload the image to Supabase
+        const { error } = await supabase.storage
+          .from("images")
+          .upload(filePath, eventImage.buffer, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (error) {
+          res.status(500).json({
+            error: "Failed to upload event image",
+            message: error.message,
+          });
+          return;
+        }
+
+        const publicUrl = supabase.storage.from("images").getPublicUrl(filePath)
+          .data.publicUrl;
+
+        // Update the event with the `imageUrl`
+        await prisma.event.update({
+          where: { id: updatedEvent.id },
+          data: { imageUrl: publicUrl },
+        });
+
+        // Return the updated event with the new image URL
+        res.status(200).json({
+          msg: "Event updated successfully with new image",
+          event: { ...updatedEvent, imageUrl: publicUrl },
+        });
+      } else {
+        // Return the updated event without the image URL
+        res.status(200).json({
+          msg: "Event updated successfully without new image",
+          event: updatedEvent,
+        });
+      }
     }),
   ],
 
