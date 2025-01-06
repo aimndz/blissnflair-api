@@ -390,8 +390,10 @@ const eventController = {
       .trim()
       .notEmpty()
       .withMessage("Status is required")
-      .isIn(["PENDING", "APPROVED", "CANCELED", "REJECTED", "COMPLETED"])
-      .withMessage("Status must be PENDING, APPROVED, REJECTED or COMPLETED"),
+      .isIn(["PENDING", "APPROVED", "CANCELLED", "REJECTED", "COMPLETED"])
+      .withMessage(
+        "Status must be PENDING, CANCELLED, APPROVED, REJECTED or COMPLETED"
+      ),
 
     asyncHandler(async (req: Request, res: Response) => {
       const errors = validationResult(req);
