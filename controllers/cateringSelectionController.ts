@@ -14,6 +14,7 @@ const cateringController = {
         mainDishes: true,
         pickASnackCorner: true,
         addOns: true,
+        event: true,
       },
     });
 
@@ -30,6 +31,7 @@ const cateringController = {
         mainDishes: true,
         pickASnackCorner: true,
         addOns: true,
+        event: true,
       },
     });
 
