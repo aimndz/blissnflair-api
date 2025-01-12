@@ -11,7 +11,7 @@ const upload = multer({
 });
 
 eventRouter.get("/", authenticateJWT(), eventController.getAllEvents);
-eventRouter.get("/:id", authenticateJWT(), eventController.getEventById);
+eventRouter.get("/:id", eventController.getEventById);
 eventRouter.post(
   "/",
   authenticateJWT(),
