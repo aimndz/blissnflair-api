@@ -443,7 +443,6 @@ const eventController = {
         additionalHours: additionalHours ? Number(additionalHours) : 0,
         additionalNotes,
         hasCleaningFee: hasCleaningFee ?? false,
-        userId: user.id, // Assuming the user ID should be updated as well
         venue,
         status,
       };
