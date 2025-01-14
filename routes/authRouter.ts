@@ -31,5 +31,8 @@ authRouter.get(
     res.redirect(`${process.env.CLIENT_URL}/dashboard`);
   }
 );
+authRouter.post("/forgot-password", authController.forgotPassword);
+authRouter.post("/verify-code", authController.verifyCode);
+authRouter.post("/reset-password", authController.resetPassword);
 
 export default authRouter;
