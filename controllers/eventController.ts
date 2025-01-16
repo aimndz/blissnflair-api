@@ -419,6 +419,7 @@ const eventController = {
         hasCleaningFee,
         venue,
         status,
+        deletedAt,
       } = req.body;
 
       // Find the existing event
@@ -445,6 +446,7 @@ const eventController = {
         hasCleaningFee: hasCleaningFee ?? false,
         venue,
         status,
+        deletedAt,
       };
 
       const updatedEvent = await prisma.event.update({
