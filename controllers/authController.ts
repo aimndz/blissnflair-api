@@ -152,6 +152,20 @@ const authController = {
         if (!user) {
           throw new Error("Email not registered");
         }
+
+        const existingCode = await prisma.verificationCode.findUnique({
+          where: { email: value },
+        });
+
+        if (existingCode) {
+          if (existingCode.expiry > new Date()) {
+            // Optionally, delete the old expired code and create a new one
+            await prisma.verificationCode.delete({
+              where: { email: value },
+            });
+          }
+        }
+
         return true;
       }),
 
@@ -164,24 +178,6 @@ const authController = {
       }
 
       const { email } = req.body;
-
-      const existingCode = await prisma.verificationCode.findUnique({
-        where: { email },
-      });
-
-      if (existingCode) {
-        if (existingCode.expiry > new Date()) {
-          res.status(400).json({
-            message: "A verification code has already been sent to this email.",
-          });
-          return;
-        }
-
-        // Optionally, delete the old expired code and create a new one
-        await prisma.verificationCode.delete({
-          where: { email },
-        });
-      }
 
       // Generate verification code
       const verificationCode = Math.floor(
