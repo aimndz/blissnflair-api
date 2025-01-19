@@ -272,11 +272,13 @@ const eventController = {
       .custom(async (value, { req }) => {
         const userId = req.user.id;
         const eventId = req.params?.id;
+        const eventDate = req.body.startTime;
 
         const existingEvent = await prisma.event.findFirst({
           where: {
             title: value,
             userId: userId,
+            date: eventDate,
             NOT: { id: eventId }, // not updating the event title for the same event is allowed
           },
         });
