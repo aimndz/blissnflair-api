@@ -279,7 +279,12 @@ const eventController = {
             title: value,
             userId: userId,
             date: eventDate,
-            NOT: { id: eventId }, // not updating the event title for the same event is allowed
+            status: { not: "CANCELLED" },
+            OR: [
+              { deletedAt: null },
+              { deletedAt: "0000-01-01T00:00:00.000Z" },
+            ],
+            NOT: { id: eventId },
           },
         });
 
