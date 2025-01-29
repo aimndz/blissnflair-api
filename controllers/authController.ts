@@ -159,7 +159,11 @@ const authController = {
 
         if (existingCode) {
           if (existingCode.expiry > new Date()) {
-            // Optionally, delete the old expired code and create a new one
+            throw new Error(
+              `Verification code already sent. Wait 10 minutes to request again.`
+            );
+          } else {
+            // Optionally, delete the old expired code
             await prisma.verificationCode.delete({
               where: { email: value },
             });
